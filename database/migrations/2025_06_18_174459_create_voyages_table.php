@@ -17,8 +17,9 @@ return new class extends Migration {
             $table->time('heure_arrivee');
             $table->decimal('prix', 8, 2);
             $table->string('localisation')->nullable();
-           $table->foreignId('compagnie_id')->nullable()->constrained('compagnies')->nullOnDelete();
-            
+            $table->foreignId('compagnie_id')->nullable()->constrained('compagnies')->nullOnDelete();
+            $table->timestamps();
+
         });
     }
 
