@@ -2,19 +2,19 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\VoyageController;
 use App\Http\Controllers\API\CompagnieController;
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+//===========Phase Authentification Entite Professionnelle===========
+
+// Routes publiques
+Route::post('/login', [CompagnieController::class, 'login']);
+Route::post('/Inscription', [CompagnieController::class, 'store']);
+Route::get('/type-categories', [CompagnieController::class, 'index']);
+
+// Routes protégées par authentification Sanctum
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/compagnie', [CompagnieController::class, 'getCurrentCompany']);
+    Route::post('/logout', [CompagnieController::class, 'logout']);
+    Route::put('/profile', [CompagnieController::class, 'updateProfile']);
 });
-Route::get('/test', function() {
-    return response()->json(['message' => 'API fonctionne']);
-});
-
-// Routes publiques pour les voyages (index, show, store, update, destroy)
-Route::apiResource('voyages', VoyageController::class);
-
-
-
-Route::apiResource('compagnies', CompagnieController::class);
