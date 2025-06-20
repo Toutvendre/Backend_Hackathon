@@ -30,8 +30,9 @@ return new class extends Migration {
             // Statut de la commande
             $table->enum('statut', ['en_attente', 'en_cours', 'livrée', 'annulée'])->default('en_attente');
 
-            // Numéro de reçu
+            // Numéro et chemin de reçu
             $table->string('numero_recu')->nullable();
+            $table->string('chemin_recu')->nullable();
 
             // Timestamps
             $table->timestamp('date_commande')->useCurrent();

@@ -19,8 +19,14 @@ class CommandeVetement extends Model
         'statut',
         'date_commande',
         'numero_recu',
+        'chemin_recu',
     ];
 
+    protected $casts = [
+        'date_commande' => 'datetime',
+    ];
+
+    // Relations
     public function produit()
     {
         return $this->belongsTo(ProduitVetement::class, 'vetement_produit_id');

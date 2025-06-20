@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\PDF;
+use Illuminate\Support\Facades\Storage;
 
 class CommandeVetementController extends Controller
 {
@@ -23,7 +24,7 @@ class CommandeVetementController extends Controller
             'client_nom' => 'required|string|max:255',
             'client_telephone' => 'required|string|max:20',
             'livraison' => 'required|boolean',
-            'adresse_livraison' => 'required_if:livraison,1|string|max:500|nullable',
+            'adresse_livraison' => 'required_if:livraison,1|string|max:500',
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -80,12 +81,12 @@ class CommandeVetementController extends Controller
             'message' => 'Commande créée. Entrez l\'OTP envoyé sur votre numéro Orange Money pour valider le paiement.',
             'commande' => $commande->load(['produit', 'compagnie']),
             'transaction' => $transaction,
+            'otp' => $otp,
         ], 201);
     }
 
     public function verifierOtp(Request $request, $transaction_id)
     {
-        // Validation de l'OTP
         $validator = Validator::make($request->all(), [
             'otp' => 'required|string',
         ]);
@@ -97,7 +98,11 @@ class CommandeVetementController extends Controller
         $transaction = Transaction::findOrFail($transaction_id);
 
         if ($transaction->statut === 'effectuee') {
-            return response()->json(['message' => 'Paiement déjà validé.'], 200);
+            $commande = $transaction->commande()->with(['produit', 'compagnie', 'transaction'])->first();
+            return response()->json([
+                'message' => 'Paiement déjà validé.',
+                'commande' => $commande,
+            ], 200);
         }
 
         if ($transaction->otp === $request->otp) {
@@ -106,49 +111,35 @@ class CommandeVetementController extends Controller
                 'verifie_a' => now(),
             ]);
 
-            // Mettre à jour le stock du produit
             $commande = $transaction->commande;
             $produit = $commande->produit;
+
             $produit->stock -= $commande->quantite;
             $produit->save();
 
-            // Mettre à jour le statut de la commande
-            $commande->update(['statut' => 'en_cours']);
+            $commande->statut = 'en_cours';
 
-            return response()->json(['message' => 'Paiement via Orange Money validé avec succès.'], 200);
-        } else {
-            return response()->json(['error' => 'OTP incorrect.'], 401);
-        }
-    }
+            // 💡 Génération automatique du numéro de reçu si manquant
+            if (!$commande->numero_recu) {
+                $dernierRecepisse = CommandeVetement::whereNotNull('numero_recu')
+                    ->orderBy('numero_recu', 'desc')
+                    ->pluck('numero_recu')
+                    ->first();
 
-    public function telechargerRecepisse(Request $request, $commande_id)
-    {
-        $commande = CommandeVetement::with(['transaction', 'produit', 'compagnie'])
-            ->where('id', $commande_id)
-            ->firstOrFail();
+                $dernierNumero = $dernierRecepisse ? intval(preg_replace('/\D/', '', $dernierRecepisse)) : 0;
+                $commande->numero_recu = 'N°' . str_pad($dernierNumero + 1, 7, '0', STR_PAD_LEFT);
+            }
 
-        if (!$commande->transaction || $commande->transaction->statut !== 'effectuee') {
-            return response()->json(['message' => 'Paiement non validé.'], 403);
-        }
-
-        // Générer un numéro de reçu unique si non existant
-        if (!$commande->numero_recu) {
-            $dernierRecepisse = CommandeVetement::whereNotNull('numero_recu')
-                ->orderBy('numero_recu', 'desc')
-                ->pluck('numero_recu')
-                ->first();
-
-            $dernierNumero = $dernierRecepisse
-                ? intval(preg_replace('/\D/', '', $dernierRecepisse))
-                : 0;
-
-            $nouveauNumero = $dernierNumero + 1;
-            $commande->numero_recu = 'N°' . str_pad($nouveauNumero, 7, '0', STR_PAD_LEFT);
             $commande->save();
+
+            $commande->load(['produit', 'compagnie', 'transaction']);
+
+            return response()->json([
+                'message' => 'Paiement validé.',
+                'commande' => $commande,
+            ], 200);
         }
 
-        $pdf = PDF::loadView('pdf.recu', ['commande' => $commande]);
-
-        return $pdf->download("recepisse-commande-{$commande->id}.pdf");
+        return response()->json(['error' => 'OTP incorrect.'], 401);
     }
 }

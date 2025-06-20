@@ -68,12 +68,6 @@ Route::prefix('vetement-sous-categories')->group(function () {
 
 
 Route::prefix('commandes')->group(function () {
-    // Créer une commande
     Route::post('/vetement', [CommandeVetementController::class, 'store']);
-
-    // Vérifier l'OTP d'une transaction
     Route::post('/vetement/transaction/{transaction_id}/verifier-otp', [CommandeVetementController::class, 'verifierOtp']);
-
-    // Télécharger le reçu PDF d'une commande
-    Route::get('/vetement/{commande_id}/recepisse', [CommandeVetementController::class, 'telechargerRecepisse']);
 });
