@@ -6,24 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('vetement_categories', function (Blueprint $table) {
+        Schema::create('categorie_plats', function (Blueprint $table) {
             $table->id();
             $table->string('nom');
-            $table->foreignId('type_categorie_id')->constrained('type_categories')->onDelete('cascade');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('vetement_categories');
+        Schema::dropIfExists('categorie_plats');
     }
 };

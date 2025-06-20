@@ -14,4 +14,10 @@ class TypeCategorie extends Model
     {
         return $this->hasMany(Compagnie::class, 'type_categorie_id');
     }
+
+    // Relation vers les catégories vêtements (VetementCategory)
+    public function vetementCategories()
+    {
+        return $this->hasMany(VetementCategory::class, 'type_categorie_id');
+    }
 }

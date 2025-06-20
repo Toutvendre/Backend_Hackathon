@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             TypeCategorieSeeder::class,
             VetementCategoriesSeeder::class,
             VetementSousCategoriesSeeder::class,
+            CategoriePlatsSeeder::class
         ]);
     }
 }

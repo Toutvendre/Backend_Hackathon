@@ -11,24 +11,30 @@ return new class extends Migration {
             $table->id();
 
             // Références
-            $table->foreignId('vetement_produit_id')->constrained('vetement_produits')->onDelete('cascade');
+            $table->foreignId('vetement_produit_id')->constrained('produit_vetements')->onDelete('cascade');
             $table->foreignId('compagnie_id')->constrained('compagnies')->onDelete('cascade');
-
-            // Informations de la commande
-            $table->string('adresse_livraison');
 
             // Informations client
             $table->string('client_nom');
             $table->string('client_telephone');
+
+            // Informations de livraison
+            $table->boolean('livraison')->default(false);
+            $table->text('adresse_livraison')->nullable();
+            $table->text('notes')->nullable();
 
             // Détails de la commande
             $table->unsignedInteger('quantite');
             $table->decimal('prix_total', 10, 2);
 
             // Statut de la commande
-            $table->enum('statut', ['en_attente', 'en_cours', 'livrée', 'annulée'])
-                ->default('en_attente');
+            $table->enum('statut', ['en_attente', 'en_cours', 'livrée', 'annulée'])->default('en_attente');
 
+            // Numéro de reçu
+            $table->string('numero_recu')->nullable();
+
+            // Timestamps
+            $table->timestamp('date_commande')->useCurrent();
             $table->timestamps();
         });
     }

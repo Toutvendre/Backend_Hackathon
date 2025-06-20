@@ -11,20 +11,28 @@ class CommandeVetement extends Model
         'compagnie_id',
         'client_nom',
         'client_telephone',
+        'livraison',
+        'adresse_livraison',
+        'notes',
         'quantite',
         'prix_total',
         'statut',
+        'date_commande',
+        'numero_recu',
     ];
 
-    // Produit commandé
     public function produit()
     {
         return $this->belongsTo(ProduitVetement::class, 'vetement_produit_id');
     }
 
-    // Compagnie vendeuse
     public function compagnie()
     {
         return $this->belongsTo(Compagnie::class);
+    }
+
+    public function transaction()
+    {
+        return $this->hasOne(Transaction::class, 'commande_vetement_id');
     }
 }

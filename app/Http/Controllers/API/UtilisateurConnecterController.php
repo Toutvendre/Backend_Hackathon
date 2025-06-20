@@ -9,7 +9,11 @@ class UtilisateurConnecterController extends Controller
 {
     public function me(Request $request)
     {
-        $compagnie = $request->user();
-        return response()->json($compagnie);
+        $user = $request->user();
+
+        return response()->json([
+            'compagnie' => $user, // ou $user->compagnie selon votre structure
+            'success' => true
+        ]);
     }
 }
